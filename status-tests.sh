@@ -39,6 +39,21 @@ secureTest() {
     sleep 1
 }
 
+# AJAX test
+ajaxTest() {
+    path="ajax"
+    response=$(curl -A "$chromeHeaders" $curlOptions $cookieOptions "$baseUrl/$path")
+    assertSuccess $response $path
+    sleep 1
+}
+
+dataTest() {
+    path="data"
+    response=$(curl -A "$chromeHeaders" -F "id=$1" $curlOptions $cookieOptions "$baseUrl/$path")
+    assertSuccess $response $path
+    sleep 1
+}
+
 # Swaps networks via OpenVPN
 swapNetwork() {
     echo "⚙ ⚙ ⚙ ⚙  Swapping Network  ⚙ ⚙ ⚙ ⚙"
@@ -51,7 +66,7 @@ assertSuccess() {
     if [ "$1" -eq 200 ]; then
         handleSuccess "$2"
     else
-        handleFailure "$2 test response code: [$code]"
+        handleFailure "$2 test response code: [$1]"
     fi
 }
 
@@ -61,7 +76,7 @@ assertFailure() {
     if [ "$1" -ne 200 ]; then
         handleSuccess "$2"
     else
-        handleFailure "$2 test response code: [$code]"
+        handleFailure "$2 test response code: [$1]"
     fi
 }
 
@@ -76,8 +91,8 @@ handleFailure() {
 
     # Send an alert email
     message="🔥 🔥 🔥 🔥  Failure Alert: $1 🔥 🔥 🔥 🔥"
-    echo message
-    mail -s "Failure Alert" $recipientEmail < /dev/null
+    echo $message
+    # mail -s "Failure Alert" $recipientEmail < /dev/null
 }
 
 # Cleanup
@@ -90,6 +105,10 @@ cleanup() {
 statusTest
 loginTest
 secureTest
+ajaxTest
+dataTest "50"
+dataTest "1"
+dataTest "2"
 swapNetwork
 cleanup
 
